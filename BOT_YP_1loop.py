@@ -53,29 +53,41 @@ def write_log(msg):
 def run_check():
     print("🚀 양평누리 테니스 코트 확인을 시작합니다...")
     send_telegram_to_MC("🚀 양평누리 테니스 코트 확인을 시작합니다...")
-
+# ====== 셀레니움 옵션 강화 ======
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
-    # 리소스 절약을 위해 창 크기 제한 및 불필요한 로그 끄기
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     
+    # 일반 사용자처럼 보이게 만드는 설정 (User-Agent)
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
+    
+    # 가상 브라우저 창 크기를 넉넉하게 설정 (표가 깨지지 않게)
+    options.add_argument("--window-size=1920,1080")
+
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    messages_to_send = []
 
-    try:
-        for item in URL_LIST:
-            url = item["url"]
-            start_date = item["start_date"]
+    messages_to_send = [] 
 
-            # 감시 시작일 이전이면 스킵
-            if date.today() < start_date:
-                continue
+    for item in URL_LIST:
+        url = item["url"]
+        # ... 생략 ...
 
-            driver.get(url)
-            time.sleep(2) # 페이지 로딩 대기
+        driver.get(url)
+        
+        # 대기 시간을 넉넉하게 5초로 늘려보세요. 
+        # 페이지의 달력이 다 그려질 때까지 기다리는 것이 핵심입니다.
+        time.sleep(5) 
 
-            calendar_cells = driver.find_elements(By.CSS_SELECTOR, "td")
+        # [디버깅용 로그] 실제로 데이터를 가져오는지 확인하기 위해
+        # print(f"페이지 제목: {driver.title}") # 로그에서 확인용
+        
+        calendar_cells = driver.find_elements(By.CSS_SELECTOR, "td")
+        
+        # 만약 cells가 0개라면 페이지 로딩 실패입니다.
+        if len(calendar_cells) == 0:
+            print(f"⚠️ {url} 에서 데이터를 찾지 못했습니다. 로딩 실패일 수 있습니다.")
+ 
             for cell in calendar_cells:
                 html = cell.get_attribute("innerHTML")
                 soup = BeautifulSoup(html, "html.parser")
