@@ -34,10 +34,16 @@ def run_check():
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
-
+    # 아래 부분을 더 최신 브라우저 정보로 교체
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+    options.add_argument("lang=ko_KR") # 한국어 설정 추가
+    
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    
+    # [핵심] 쿠키나 리퍼러 정보를 수동으로 주입 (서버를 속이는 기술)
+    driver.execute_cdp_cmd('Network.setUserAgentOverride', {
+        "userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    })
     messages_to_send = []
 
     try:
@@ -90,3 +96,4 @@ def run_check():
 
 if __name__ == "__main__":
     run_check()
+
