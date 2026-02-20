@@ -64,7 +64,7 @@ def run_check():
                 continue
 
             driver.get(url)
-            time.sleep(5) # 페이지 로딩 대기
+            time.sleep(15) # 페이지 로딩 대기
 
             calendar_cells = driver.find_elements(By.CSS_SELECTOR, "td")
             
@@ -115,3 +115,4 @@ def run_check():
 
 if __name__ == "__main__":
     run_check()
+
