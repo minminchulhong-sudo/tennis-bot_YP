@@ -108,6 +108,7 @@ def run_check():
         else:
             print("현재 예약 가능한 슬롯이 없습니다.")
             write_log("확인 완료: 예약 가능 슬롯 없음")
+            send_telegram_to_MC("확인 완료: 예약 가능 슬롯 없음")
 
     except Exception as e:
         error_msg = f"❌ 실행 중 오류 발생: {e}"
@@ -118,4 +119,5 @@ def run_check():
         print("✅ 검사가 완료되어 프로그램을 종료합니다.")
 
 if __name__ == "__main__":
+
     run_check()
