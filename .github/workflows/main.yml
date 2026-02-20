@@ -24,7 +24,7 @@ jobs:
           pip install selenium webdriver-manager requests beautifulsoup4
 
       - name: Run script
-        run: BOT_YP_1loop.py # 여기에 실제 파일 이름을 적어주세요.
+        run: python BOT_YP_1loop.py # 여기에 실제 파일 이름을 적어주세요.
         env:
           # 환경변수가 필요하다면 여기에 추가 (현재 코드엔 직접 입력되어 있으니 비워둬도 됨)
           PYTHONPATH: .
