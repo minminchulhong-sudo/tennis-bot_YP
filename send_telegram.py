@@ -24,7 +24,7 @@ def send_messages():
         except Exception as e:
             print(f"오류 발생: {e}")
         
-        time.sleep(10) # 10초 대기
+        time.sleep(30) # 30초 대기
 
 if __name__ == "__main__":
     if TOKEN and CHAT_ID:
