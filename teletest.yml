@@ -1,0 +1,34 @@
+name: 10s Telegram Notifier
+
+on:
+  schedule:
+    # 매 5분마다 워크플로우를 재시작하여 끊김을 최소화 (GitHub 정책상 지연될 수 있음)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # 동일한 워크플로우가 이미 실행 중이면 취소하고 새것을 실행 (중복 방지)
+    concurrency:
+      group: telegram-group
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install pyTelegramBotAPI
+
+      - name: Run Script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python send_telegram.py
