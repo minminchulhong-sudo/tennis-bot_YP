@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import requests
 import re
 from datetime import date
+from html import escape
 import os
 from bs4 import BeautifulSoup
 
@@ -52,12 +53,25 @@ def build_url_list(today):
     return url_list
 
 
-def send_telegram(chat_id, text):
+def send_telegram(chat_id, text, html=False):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    # 텔레그램 메시지 최대 길이(4096자) 대비 분할 전송
-    for i in range(0, len(text), 4000):
+    # 텔레그램 메시지 최대 길이(4096자) 대비, HTML 태그가 깨지지 않게 줄 단위로 분할 전송
+    chunks, current = [], ""
+    for line in text.split("\n"):
+        if current and len(current) + len(line) + 1 > 4000:
+            chunks.append(current)
+            current = line
+        else:
+            current = f"{current}\n{line}" if current else line
+    if current:
+        chunks.append(current)
+
+    for chunk in chunks:
+        payload = {'chat_id': chat_id, 'text': chunk}
+        if html:
+            payload['parse_mode'] = 'HTML'
         try:
-            requests.post(url, data={'chat_id': chat_id, 'text': text[i:i + 4000]})
+            requests.post(url, data=payload)
         except Exception as e:
             print(f"텔레그램 전송 오류: {e}")
 
@@ -112,23 +126,23 @@ def time_sort_key(time_label):
 
 
 def build_message(results, links):
-    """수집 결과를 날짜-시간 순으로 정리한 하나의 메시지 생성"""
-    lines = ["🎾 양평누리 테니스 예약 가능 현황", ""]
+    """수집 결과를 날짜-시간 순으로 정리한 하나의 메시지 생성 (텔레그램 HTML 포맷)"""
+    lines = ["🎾 <b>양평누리 테니스 예약 가능 현황</b>", ""]
 
     for d in sorted(results):
         label = "주말" if d.weekday() in [5, 6] else "공휴일"
-        lines.append(f"{d.month}월 {d.day}일 ({WEEKDAYS_KR[d.weekday()]}, {label})")
+        lines.append(f"📅 <b>{d.month}월 {d.day}일 ({WEEKDAYS_KR[d.weekday()]}, {label})</b>")
 
         slot_map = results[d]
         for time_label in sorted(slot_map, key=time_sort_key):
-            courts = [c for c in dict.fromkeys(slot_map[time_label]) if c]
+            courts = [escape(c) for c in dict.fromkeys(slot_map[time_label]) if c]
             court_text = ", ".join(courts) if courts else "예약가능 (상세는 링크 확인)"
-            lines.append(f"{time_label}: {court_text}" if time_label else court_text)
+            lines.append(f"⏰ {time_label}: {court_text}" if time_label else f"⏰ {court_text}")
         lines.append("")
 
-    lines.append("예약 링크")
+    lines.append("🔗 <b>예약 링크</b>")
     for label, url in links:
-        lines.append(f"{label}: {url}")
+        lines.append(f'{escape(label)}: {escape(url)}')
 
     return "\n".join(lines)
 
@@ -205,7 +219,7 @@ def run_check():
         if results:
             message = build_message(results, links)
             print(message)
-            send_telegram(CHAT_ID, message)
+            send_telegram(CHAT_ID, message, html=True)
         else:
             print("잔여 코트 없음")
 
