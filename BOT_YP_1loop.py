@@ -127,7 +127,7 @@ def time_sort_key(time_label):
 
 def build_message(results, links):
     """수집 결과를 날짜-시간 순으로 정리한 하나의 메시지 생성 (텔레그램 HTML 포맷)"""
-    lines = ["🎾 <b>양평누리 테니스 예약 가능 현황</b>", ""]
+    lines = []
 
     for d in sorted(results):
         label = "주말" if d.weekday() in [5, 6] else "공휴일"
@@ -137,7 +137,7 @@ def build_message(results, links):
         for time_label in sorted(slot_map, key=time_sort_key):
             courts = [escape(c) for c in dict.fromkeys(slot_map[time_label]) if c]
             court_text = ", ".join(courts) if courts else "예약가능 (상세는 링크 확인)"
-            lines.append(f"⏰ {time_label}: {court_text}" if time_label else f"⏰ {court_text}")
+            lines.append(f"{time_label}: {court_text}" if time_label else court_text)
         lines.append("")
 
     lines.append("🔗 <b>예약 링크</b>")
